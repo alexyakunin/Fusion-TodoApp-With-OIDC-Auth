@@ -170,87 +170,42 @@ public class Startup
         services.AddBff();
         
         // ASP.NET Core authentication providers
-        //services.AddAuthentication(options => {
-        //    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-        //}).AddCookie(options => {
-        //    options.LoginPath = "/signIn";
-        //    options.LogoutPath = "/signOut";
-        //    if (Env.IsDevelopment())
-        //        options.Cookie.SecurePolicy = CookieSecurePolicy.None;
-        //    // This controls the expiration time stored in the cookie itself
-        //    options.ExpireTimeSpan = TimeSpan.FromDays(7);
-        //    options.SlidingExpiration = true;
-        //    // And this controls when the browser forgets the cookie
-        //    options.Events.OnSigningIn = ctx => {
-        //        ctx.CookieOptions.Expires = DateTimeOffset.UtcNow.AddDays(28);
-        //        return Task.CompletedTask;
-        //    };
-        //}).AddMicrosoftAccount(options => {
-        //    options.ClientId = HostSettings.MicrosoftAccountClientId;
-        //    options.ClientSecret = HostSettings.MicrosoftAccountClientSecret;
-        //    // That's for personal account authentication flow
-        //    options.AuthorizationEndpoint = "https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize";
-        //    options.TokenEndpoint = "https://login.microsoftonline.com/consumers/oauth2/v2.0/token";
-        //    options.CorrelationCookie.SameSite = SameSiteMode.Lax;
-        //}).AddGitHub(options => {
-        //    options.ClientId = HostSettings.GitHubClientId;
-        //    options.ClientSecret = HostSettings.GitHubClientSecret;
-        //    options.Scope.Add("read:user");
-        //    options.Scope.Add("user:email");
-        //    options.CorrelationCookie.SameSite = SameSiteMode.Lax;
-        //});
-
-        //ADDING THIS TO EXISTING DOES NOT WORK
-        //.AddOpenIdConnect("oidc", options =>
-        //{
-        //    options.Authority = "https://demo.duendesoftware.com";
-
-        //    options.ClientId = "interactive.confidential";//"interactive_client";//
-        //    options.ClientSecret = "secret";
-        //    options.ResponseType = "code";
-        //    options.ResponseMode = "query";
-
-        //    options.Scope.Clear();
-        //    options.Scope.Add("openid");
-        //    options.Scope.Add("profile");
-        //    options.Scope.Add("api");
-        //    options.Scope.Add("offline_access");
-
-        //    options.MapInboundClaims = false;
-        //    options.GetClaimsFromUserInfoEndpoint = true;
-        //    options.SaveTokens = true;
-        //}); 
-
-        services.AddAuthentication(options =>
-        {
-            options.DefaultScheme = "cookie";
+        services.AddAuthentication(options => {
+            options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
             options.DefaultChallengeScheme = "oidc";
             options.DefaultSignOutScheme = "oidc";
-        })
-            .AddCookie("cookie", options =>
-            {
-                options.Cookie.Name = "__Host-blazor";
-                options.Cookie.SameSite = SameSiteMode.Strict;
-            })
-            .AddOpenIdConnect("oidc", options =>
-            {
-                options.Authority = "https://demo.duendesoftware.com";
+        }).AddCookie(options => {
+            options.LoginPath = "/signIn";
+            options.LogoutPath = "/signOut";
+            if (Env.IsDevelopment())
+                options.Cookie.SecurePolicy = CookieSecurePolicy.None;
+            // This controls the expiration time stored in the cookie itself
+            options.ExpireTimeSpan = TimeSpan.FromDays(7);
+            options.SlidingExpiration = true;
+            // And this controls when the browser forgets the cookie
+            options.Events.OnSigningIn = ctx => {
+                ctx.CookieOptions.Expires = DateTimeOffset.UtcNow.AddDays(28);
+                return Task.CompletedTask;
+            };
+        }).AddOpenIdConnect("oidc", options => {
+            options.Authority = "https://demo.duendesoftware.com";
 
-                options.ClientId = "interactive.confidential";
-                options.ClientSecret = "secret";
-                options.ResponseType = "code";
-                options.ResponseMode = "query";
+            options.ClientId = "interactive.confidential";
+            options.ClientSecret = "secret";
+            options.ResponseType = "code";
+            options.ResponseMode = "query";
 
-                options.Scope.Clear();
-                options.Scope.Add("openid");
-                options.Scope.Add("profile");
-                options.Scope.Add("api");
-                options.Scope.Add("offline_access");
+            options.Scope.Clear();
+            options.Scope.Add("openid");
+            options.Scope.Add("profile");
+            options.Scope.Add("api");
+            options.Scope.Add("offline_access");
 
-                options.MapInboundClaims = false;
-                options.GetClaimsFromUserInfoEndpoint = true;
-                options.SaveTokens = true;
-            });
+            options.MapInboundClaims = false;
+            options.GetClaimsFromUserInfoEndpoint = true;
+            options.SaveTokens = true;
+            options.CorrelationCookie.SameSite = SameSiteMode.Lax;
+        });
 
         // Web
         services.AddRouting();
@@ -325,11 +280,9 @@ public class Startup
         {
             endpoints.MapBlazorHub();
             endpoints.MapFusionWebSocketServer();
-            endpoints.MapControllers()
-                    .RequireAuthorization()
-                    .AsBffApiEndpoint();
-            endpoints.MapFallbackToPage("/_Host");
+            endpoints.MapControllers();
             endpoints.MapBffManagementEndpoints();
+            endpoints.MapFallbackToPage("/_Host");
         });
     }
 }

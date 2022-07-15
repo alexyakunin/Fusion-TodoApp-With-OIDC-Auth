@@ -1,5 +1,7 @@
 using System.Net.Http;
 
+namespace Templates.TodoApp.UI.Services;
+
 public class AntiforgeryHandler : DelegatingHandler
 {
     protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)

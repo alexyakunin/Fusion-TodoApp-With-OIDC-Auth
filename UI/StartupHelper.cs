@@ -1,3 +1,4 @@
+using System.Net.Http;
 using Blazorise;
 using Blazorise.Bootstrap;
 using Blazorise.Icons.FontAwesome;
@@ -8,6 +9,7 @@ using Stl.Fusion.Extensions;
 using Stl.Fusion.UI;
 using Templates.TodoApp.Abstractions;
 using Templates.TodoApp.Abstractions.Clients;
+using Templates.TodoApp.UI.Services;
 
 namespace Templates.TodoApp.UI;
 
@@ -28,6 +30,11 @@ public static class StartupHelper
             var isFusionClient = (name ?? "").StartsWith("Stl.Fusion");
             var clientBaseUri = isFusionClient ? baseUri : apiBaseUri;
             o.HttpClientActions.Add(httpClient => httpClient.BaseAddress = clientBaseUri);
+            // BFF middleware requires anti-forgery header,
+            // otherwise it rejects every request, including
+            // the ones to Fusion services.
+            var antiforgeryHandler = new AntiforgeryHandler();
+            o.HttpMessageHandlerBuilderActions.Add(b => b.AdditionalHandlers.Add(antiforgeryHandler));
         });
         fusionClient.ConfigureWebSocketChannel(_ => new() {
             BaseUri = baseUri,
