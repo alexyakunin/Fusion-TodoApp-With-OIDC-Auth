@@ -13,6 +13,7 @@ using Stl.Fusion.Bridge;
 using Stl.Fusion.Client;
 using Stl.Fusion.Server;
 using Microsoft.AspNetCore.Authentication.MicrosoftAccount;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -153,14 +154,6 @@ public class Startup
             });
         fusion.AddSandboxedKeyValueStore();
         fusion.AddOperationReprocessor();
-        // You don't need to manually add TransientFailureDetector -
-        // it's here only to show that operation reprocessor works
-        // when TodoService.AddOrUpdate throws this exception.
-        // Database-related transient errors are auto-detected by
-        // DbOperationScopeProvider<TDbContext> (it uses DbContext's
-        // IExecutionStrategy to do this).
-        services.TryAddEnumerable(ServiceDescriptor.Singleton(
-            TransientFailureDetector.New(e => e is DbUpdateConcurrencyException)));
 
         // Compute service(s)
         fusion.AddComputeService<ITodoService, TodoService>();
@@ -172,8 +165,7 @@ public class Startup
         // ASP.NET Core authentication providers
         services.AddAuthentication(options => {
             options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-            options.DefaultChallengeScheme = "oidc";
-            options.DefaultSignOutScheme = "oidc";
+            options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
         }).AddCookie(options => {
             options.LoginPath = "/signIn";
             options.LogoutPath = "/signOut";
@@ -187,7 +179,7 @@ public class Startup
                 ctx.CookieOptions.Expires = DateTimeOffset.UtcNow.AddDays(28);
                 return Task.CompletedTask;
             };
-        }).AddOpenIdConnect("oidc", options => {
+        }).AddOpenIdConnect(OpenIdConnectDefaults.AuthenticationScheme, options => {
             options.Authority = "https://demo.duendesoftware.com";
 
             options.ClientId = "interactive.confidential";
