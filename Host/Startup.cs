@@ -166,6 +166,7 @@ public class Startup
         services.AddAuthentication(options => {
             options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
             options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
+            options.DefaultSignOutScheme = OpenIdConnectDefaults.AuthenticationScheme;
         }).AddCookie(options => {
             options.LoginPath = "/signIn";
             options.LogoutPath = "/signOut";
@@ -180,6 +181,13 @@ public class Startup
                 return Task.CompletedTask;
             };
         }).AddOpenIdConnect(OpenIdConnectDefaults.AuthenticationScheme, options => {
+            // You also need to make sure this endpoint is called on sign-out:
+            // https://docs.duendesoftware.com/identityserver/v6/reference/endpoints/end_session/
+            // Not sure if it's possible to set this up from here, coz they require id_token_hint,
+            // but you can also redirect the browser to /logout, which is one
+            // of endpoints registered via MapBffManagementEndpoints,
+            // and I assume it should do that.
+
             options.Authority = "https://demo.duendesoftware.com";
 
             options.ClientId = "interactive.confidential";
